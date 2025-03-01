@@ -1,90 +1,110 @@
-const form = document.querySelector("form");
-const amount = document.querySelector("#amount");
-const expense = document.querySelector("#expense");
-const category = document.querySelector("#category");
-const expenseQuantity = document.querySelector("aside header p span");
-const expenseList = document.querySelector("ul");
+const form = document.querySelector("form")
+const amount = document.getElementById("amount")
+const expense = document.getElementById("expense")
+const category = document.getElementById("category")
+
+const expenseList = document.querySelector("ul")
+const expensesTotal = document.querySelector("aside header h2")
+const expenseQuantity = document.querySelector("aside header p span")
+
 amount.oninput = () => {
-  let value = amount.value.replace(/\D/g, "");
-
-  value = Number(value) / 100;
-
-  amount.value = formatCurrencyBRL(value);
-};
-
-form.onsubmit = (event) => {
-  event.preventDefault();
-
-  const newExpense = {
-    id: new Date().getTime(),
-    expense: expense.value,
-    categoryId: category.value,
-    categoryName: category.options[category.selectedIndex].text,
-    amount: amount.value,
-    creatAt: new Date(),
-  };
-  expenseAdd(newExpense);
-};
+    let value = amount.value.replace(/\D/g, "")
+    value = Number(value) / 100
+    amount.value = formatCurrencyBRL(value)
+}
 
 function formatCurrencyBRL(value) {
-  value = value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    value = value.toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL"
+    })
+    return value
+}
 
-  return value;
+form.onsubmit = (event) => {
+    event.preventDefault()
+
+    const newExpense = {
+        id: new Date().getTime(),
+        expense: expense.value,
+        category_id: category.value,
+        category_name: category.options[category.selectedIndex].text,
+        amount: amount.value,
+        created_at: new Date(),
+    }
+
+    expenseAdd(newExpense)
 }
 
 function expenseAdd(newExpense) {
-  try {
-    const expenseItem = document.createElement("li");
-    const expenseInco = document.createElement("img");
-    const expenseInfo = document.createElement("div");
-    const expenseName = document.createElement("strong");
-    const expenseCategory = document.createElement("span");
-    const expenseAmount = document.createElement("span");
-    const removeIcon = document.createElement("img");
+    try {
+        const expenseItem = document.createElement("li")
+        expenseItem.classList.add("expense")
 
-    expenseItem.classList.add("expense");
-    expenseInfo.classList.add("expense-info");
-    expenseAmount.classList.add("expense-amount");
-    removeIcon.classList.add("remove-icon");
+        const expenseIcon = document.createElement("img")
+        expenseIcon.setAttribute("src", `img/${newExpense.category_id}.svg`)
+        expenseIcon.setAttribute("alt", newExpense.category_name)
 
-    expenseName.textContent = newExpense.expense;
-    expenseCategory.textContent = newExpense.categoryName;
+        const expenseInfo = document.createElement("div")
+        expenseInfo.classList.add("expense-info")
 
-    expenseAmount.innerHTML = `<small>R$</small> ${newExpense.amount
-      .toUpperCase()
-      .replace("R$", "")}`;
+        const expenseName = document.createElement("strong")
+        expenseName.textContent = newExpense.expense
 
-    expenseInco.setAttribute("src", `./img/${newExpense.categoryId}.svg`);
-    expenseInco.setAttribute("alt", newExpense.categoryName);
-    removeIcon.setAttribute("src", `./img/remove.svg`);
-    removeIcon.setAttribute("alt", "remover");
+        const expenseCategory = document.createElement("span")
+        expenseCategory.textContent = newExpense.category_name
 
-    expenseInfo.append(expenseName, expenseCategory);
-    expenseItem.append(expenseInco, expenseInfo, expenseAmount, removeIcon);
-    expenseList.append(expenseItem);
+        expenseInfo.append(expenseName, expenseCategory)
 
-    updataTotals();
-  } catch (error) {
-    alert("Ocorreu um erro ao adicionar a despesa");
-    console.log("expenseAdd ➜ error:", error);
-  }
+        const expenseAmount = document.createElement("span")
+        expenseAmount.classList.add("expense-amount")
+        expenseAmount.innerHTML = `<small>R$</small>${newExpense.amount.toUpperCase().replace("R$", "")}`
+
+        const removeIcon = document.createElement("img")
+        removeIcon.classList.add("remove-icon")
+        removeIcon.setAttribute("src", "img/remove.svg")
+        removeIcon.setAttribute("alt", "Remover")
+
+        expenseItem.append(expenseIcon, expenseInfo, expenseAmount, removeIcon)
+        expenseList.append(expenseItem)
+        updateTotals()
+
+    } catch (error) {
+        alert("Não foi possível atualizar a lista de despesas.")
+        console.log(error)
+    }
 }
 
+function updateTotals() {
+    try {
+        const items = expenseList.children
+        expenseQuantity.textContent = `${items.length} ${items.length > 1 ? "despesas" : "despesa"}`
 
-function updataTotals() {
-  try {
-    const itens = expenseList.children;
+        let total = 0
 
-    expenseQuantity.textContent = `${itens.length} ${itens.length>1?"despesas":"despesa"}`;
+        for (let item = 0; item < items.length; item++) {
+            const itemAmount = items[item].querySelector(".expense-amount")
+            let value = itemAmount.textContent.replace(/[^\d,]/g, "").replace(",", ".")
+            value = parseFloat(value)
+
+            if (isNaN(value)) {
+                return alert("Não foi possível calcular o total. O valor não parece ser um número.")
+            }
+
+            total += Number(value)
+        }
+
+        const symbolBRL = document.createElement("small")
+        symbolBRL.textContent = "R$"
+        total = formatCurrencyBRL(total).toUpperCase().replace("R$", "")
+        
+        expensesTotal.innerHTML = ""
+        expensesTotal.append(symbolBRL, total)
+
+    } catch (error) {
+        alert("Não foi possível atualizar os totais.")
+        console.log(error)
+    } 
     
-    for (let i = 0; i < itens.length; i++) {
-      const item = itens[i].querySelector(".expense-amount");
-      
-      
-    }
 
-  } catch (error) {
-    console.log("updataTotals ➜ error:", error);
-    alert("Ocorreu um erro ao atualizar o total");
-  }
-} 
+    }   
