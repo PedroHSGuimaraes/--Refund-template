@@ -67,6 +67,8 @@ function expenseAdd(newExpense) {
 
         expenseItem.append(expenseIcon, expenseInfo, expenseAmount, removeIcon)
         expenseList.append(expenseItem)
+  
+        imputsClear()
         updateTotals()
 
     } catch (error) {
@@ -107,4 +109,23 @@ function updateTotals() {
     } 
     
 
-    }   
+    } 
+
+    expenseList.addEventListener("click", (event) => {
+        if (event.target.classList.contains("remove-icon")) {
+            const item = event.target.closest(".expense")
+            item.remove()
+       
+        }
+        updateTotals()
+    })
+
+
+    function imputsClear() {
+        expense.value = ""
+        amount.value = ""
+        category.value = ""
+
+        expense.focus()
+    }
+
